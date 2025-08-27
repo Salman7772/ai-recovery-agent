@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Recovery Agent</title>
+  <style>
+    body{font-family:Arial, sans-serif; margin:28px; line-height:1.5;}
+    .card{max-width:760px; margin:auto; padding:24px; border:1px solid #ddd; border-radius:8px;}
+    h1{margin-top:0;}
+    .hint{font-size:13px; color:#666;}
+    .btn{padding:10px 16px; border:0; border-radius:6px; cursor:pointer;}
+    .primary{background:#1f6feb; color:#fff;}
+    pre{background:#f7f7f7; padding:10px; overflow:auto;}
+    .ok{color:green}
+    .err{color:#b00020}
+    .log{white-space:pre-wrap; background:#0b1020; color:#b9e0ff; padding:10px; border-radius:6px; font-size:13px;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Loan Recovery AI Calling Agent</h1>
+    <p class="hint">Upload a CSV and place automated voice calls with a dynamic recovery script. Use DRY_RUN for safe testing.</p>
+
+    <form id="form">
+      <input type="file" id="file" accept=".csv" required />
+      <button class="btn primary" type="submit">Upload & Call</button>
+    </form>
+
+    <div id="result"></div>
+
+    <h3>CSV Format</h3>
+    <pre>name,phone,loan_no,amount,due_date,bucket,insured
+Rizwan,+919876543210,PR123456,₹136000,2025-09-05,X,Yes
+Kusum,+919812345678,PR987654,₹42000,2025-09-10,0,No</pre>
+  </div>
+
+  <script>
+  const form = document.getElementById('form');
+  const fileInput = document.getElementById('file');
+  const resultDiv = document.getElementById('result');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = fileInput.files[0];
+    if (!f) return;
+
+    const fd = new FormData();
+    fd.append('file', f);
+
+    resultDiv.innerHTML = 'Uploading & processing...';
+
+    try {
+      const res = await fetch('/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!data.ok) {
+        resultDiv.innerHTML = `<p class="err">Error: ${data.error || 'Unknown error'}</p>`;
+        return;
+      }
+      const list = data.placed.map(p => JSON.stringify(p, null, 2)).join('\n\n');
+      resultDiv.innerHTML = `<p class="ok">Done. Calls placed (or simulated in DRY_RUN). Count: ${data.count}</p>
+<pre class="log">${list}</pre>`;
+    } catch (err) {
+      resultDiv.innerHTML = `<p class="err">Network error: ${err}</p>`;
+    }
+  });
+  </script>
+</body>
+</html>
